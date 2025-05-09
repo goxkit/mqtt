@@ -1,0 +1,117 @@
+name: pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+# Add permissions block to grant write access for tags
+permissions:
+  contents: write
+
+jobs:
+  cache-modules:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📁 Checkout repository
+      uses: actions/checkout@v2
+
+    - name: ⚡ Use GoLang
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.24.2'
+        cache: true
+        cache-dependency-path: |
+          **/go.sum
+          **/go.mod
+
+    - name: 🧰 Install dependencies
+      run: |
+        make install
+        make download
+
+  ci:
+    needs: cache-modules
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📁 Checkout repository
+        uses: actions/checkout@v2
+
+      - name: ⚡ Use GoLang
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.24.2'
+          cache: true
+          cache-dependency-path: |
+            **/go.sum
+            **/go.mod
+
+      - name: 🔧 Install golangci
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: 🔎 Run tests
+        continue-on-error: true
+        run: |
+          make tests
+
+      - name: 🔎 Run GolangCI Lint scanner
+        continue-on-error: true
+        run: |
+          make lint
+
+      - name: Run Gosec scanned
+        uses: securego/gosec@master
+        continue-on-error: true
+        with:
+          args: './...'
+
+  next_tag:
+    if: ${{ github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' }}
+    needs: ci
+    runs-on: ubuntu-latest
+    outputs:
+      patch_tag: ${{ steps.out-patch.outputs.patch_tag }}
+      minor_tag: ${{ steps.out-minor.outputs.minor_tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Patch release
+        if: ${{ github.ref == 'refs/heads/develop' }}
+        id: patch
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          WITH_V: true
+
+      - name: Minor release
+        if: ${{ github.ref == 'refs/heads/main' }}
+        id: minor
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: minor
+          WITH_V: true
+
+      - name: Output Patch
+        if: ${{ github.ref == 'refs/heads/develop' }}
+        id: out-patch
+        run: |
+          echo "patch_tag=${{ steps.patch.outputs.new_tag }}" >> $GITHUB_OUTPUT
+          echo "Build version is ${{ steps.patch.outputs.new_tag }}"
+
+      - name: Output Minor
+        if: ${{ github.ref == 'refs/heads/main' }}
+        id: out-minor
+        run: |
+          echo "minor_tag=${{ steps.minor.outputs.new_tag }}" >> $GITHUB_OUTPUT
+          echo "Build version is ${{ steps.minor.outputs.new_tag }}"
