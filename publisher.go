@@ -27,7 +27,7 @@ func NewPublisher(configs *configs.Configs, client myQTT.Client) messaging.Publi
 }
 
 // Refactored Publish method to align with messaging.Publisher interface
-func (p *mqttPublisher) Publish(ctx context.Context, to, from, key *string, msg any, options ...*messaging.Option) error {
+func (p *mqttPublisher) Publish(ctx context.Context, to, from, key *string, msg any, options ...*messaging.PubOption) error {
 	if to == nil || *to == "" {
 		return EmptyTopicError
 	}
@@ -50,7 +50,7 @@ func (p *mqttPublisher) Publish(ctx context.Context, to, from, key *string, msg 
 }
 
 // Refactored PublishDeadline method to align with messaging.Publisher interface
-func (p *mqttPublisher) PublishDeadline(ctx context.Context, to, from, key *string, msg any, options ...*messaging.Option) error {
+func (p *mqttPublisher) PublishDeadline(ctx context.Context, to, from, key *string, msg any, options ...*messaging.PubOption) error {
 	if to == nil || *to == "" {
 		return EmptyTopicError
 	}
@@ -99,7 +99,7 @@ func (p *mqttPublisher) validate(topic string, qos QoS, payload any) error {
 	return nil
 }
 
-func (p *mqttPublisher) qosFromOptions(options ...*messaging.Option) QoS {
+func (p *mqttPublisher) qosFromOptions(options ...*messaging.PubOption) QoS {
 	for _, option := range options {
 		if option.Key == "qos" {
 			switch option.Value {
@@ -119,7 +119,7 @@ func (p *mqttPublisher) qosFromOptions(options ...*messaging.Option) QoS {
 	return QoS(0)
 }
 
-func (p *mqttPublisher) retainFromOptions(options ...*messaging.Option) bool {
+func (p *mqttPublisher) retainFromOptions(options ...*messaging.PubOption) bool {
 	for _, option := range options {
 		if option.Key == "retain" {
 			return option.Value == "true"
