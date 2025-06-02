@@ -40,7 +40,7 @@ go get github.com/ralvescosta/gokit/mqtt
 ```go
 import (
 	"github.com/ralvescosta/gokit/mqtt"
-    configsBuilder "github.com/ralvescosta/gokit/configs_builder"
+  configsBuilder "github.com/ralvescosta/gokit/configs_builder"
 )
 
 func main() {
