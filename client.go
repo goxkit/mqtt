@@ -44,7 +44,7 @@ func (c *mqttClient) Connect() error {
 	clientOpts.AddBroker(fmt.Sprintf("%s://%s:%v", "tcp", c.cfgs.MQTTConfigs.Host, c.cfgs.MQTTConfigs.Port))
 	clientOpts.SetUsername(c.cfgs.MQTTConfigs.User)
 	clientOpts.SetPassword(c.cfgs.MQTTConfigs.Password)
-	clientOpts.SetClientID(c.cfgs.AppConfigs.AppName)
+	clientOpts.SetClientID(c.cfgs.AppConfigs.Name)
 	clientOpts.Order = false
 	clientOpts.OnConnect = c.onConnectionEvent
 	clientOpts.OnConnectionLost = c.onDisconnectEvent
