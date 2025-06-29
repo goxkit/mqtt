@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.5.0
-	github.com/goxkit/configs v0.7.0
+	github.com/goxkit/configs v0.8.0
 	github.com/goxkit/logging v0.6.0
 	github.com/goxkit/messaging v0.2.0
 	go.opentelemetry.io/otel v1.37.0
